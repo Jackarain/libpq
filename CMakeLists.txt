@@ -165,23 +165,5 @@ endif()
 # 6. 示例程序
 # ==============================================================================
 if(ENABLE_EXAMPLES)
-    # 示例: libpq_example
-    add_executable(libpq_example
-        ${CMAKE_CURRENT_SOURCE_DIR}/example/libpq_example.c
-    )
-
-    target_include_directories(libpq_example PRIVATE
-        ${LIBPQ_INC}
-    )
-
-    target_link_libraries(libpq_example PRIVATE
-        libpq_static
-    )
-
-    if(WIN32)
-        target_link_libraries(libpq_example PRIVATE
-            ws2_32.lib
-            secur32.lib
-        )
-    endif()
+    add_subdirectory(examples)
 endif()
