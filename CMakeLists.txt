@@ -32,6 +32,16 @@ set(LIBPQ_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/port/pg_strong_random.c
     ${CMAKE_CURRENT_SOURCE_DIR}/port/snprintf.c
     ${CMAKE_CURRENT_SOURCE_DIR}/port/strerror.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/port/timingsafe_bcmp.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/port/bsearch_arg.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/port/path.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/port/pg_bitutils.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/port/pgmkdirp.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/port/pgsleep.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/port/pgstrsignal.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/port/pqsignal.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/port/qsort_arg.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/port/quotes.c
 
     ${CMAKE_CURRENT_SOURCE_DIR}/src/common/base64.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/common/cryptohash.c
@@ -100,7 +110,6 @@ option(ENABLE_EXAMPLES "Build example programs" OFF)
 set(LIBPQ_INC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/port
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/common
     ${CMAKE_CURRENT_SOURCE_DIR}/interfaces/libpq
 )
 
@@ -121,7 +130,7 @@ else()
 endif()
 
 # 全局公共宏定义 (对应 libpq_c_args)
-add_compile_definitions(SO_MAJOR_VERSION=5 FRONTEND _GNU_SOURCE)
+add_compile_definitions(SO_MAJOR_VERSION=5 FRONTEND _GNU_SOURCE JSONAPI_USE_PQEXPBUFFER)
 
 # ==============================================================================
 # 5. 目标构建：只构建静态库
@@ -144,6 +153,12 @@ endif()
 
 if(ENABLE_GSSAPI)
     target_link_libraries(libpq_static PRIVATE ${GSSAPI_LIBRARIES})
+endif()
+
+# 数学库 (用于 pg_prng.c 中的 log())
+find_library(MATH_LIBRARY m)
+if(MATH_LIBRARY)
+    target_link_libraries(libpq_static PRIVATE ${MATH_LIBRARY})
 endif()
 
 # ==============================================================================
