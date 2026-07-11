@@ -22,6 +22,37 @@ set(LIBPQ_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/legacy-pqsignal.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/libpq-events.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/pqexpbuffer.c
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/port/chklocale.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/port/explicit_bzero.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/port/getpeereid.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/port/inet_net_ntop.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/port/noblock.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/port/pgstrcasecmp.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/port/pg_strong_random.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/port/snprintf.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/port/strerror.c
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/base64.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/cryptohash.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/encnames.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/fe_memutils.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/hmac.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/ip.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/jsonapi.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/link-canary.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/md5.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/md5_common.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/pg_prng.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/psprintf.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/saslprep.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/scram-common.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/sha1.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/sha2.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/string.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/stringinfo.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/unicode_norm.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/wchar.c
 )
 
 # ==============================================================================
@@ -59,11 +90,17 @@ if(ENABLE_GSSAPI)
 endif()
 
 # ==============================================================================
+# 示例程序 (默认关闭)
+# ==============================================================================
+option(ENABLE_EXAMPLES "Build example programs" OFF)
+
+# ==============================================================================
 # 4. 包含路径与编译器参数
 # ==============================================================================
 set(LIBPQ_INC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/port
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/common
     ${CMAKE_CURRENT_SOURCE_DIR}/interfaces/libpq
 )
 
@@ -84,7 +121,7 @@ else()
 endif()
 
 # 全局公共宏定义 (对应 libpq_c_args)
-add_compile_definitions(SO_MAJOR_VERSION=5)
+add_compile_definitions(SO_MAJOR_VERSION=5 FRONTEND _GNU_SOURCE)
 
 # ==============================================================================
 # 5. 目标构建：只构建静态库
@@ -107,4 +144,29 @@ endif()
 
 if(ENABLE_GSSAPI)
     target_link_libraries(libpq_static PRIVATE ${GSSAPI_LIBRARIES})
+endif()
+
+# ==============================================================================
+# 6. 示例程序
+# ==============================================================================
+if(ENABLE_EXAMPLES)
+    # 示例: libpq_example
+    add_executable(libpq_example
+        ${CMAKE_CURRENT_SOURCE_DIR}/example/libpq_example.c
+    )
+
+    target_include_directories(libpq_example PRIVATE
+        ${LIBPQ_INC}
+    )
+
+    target_link_libraries(libpq_example PRIVATE
+        libpq_static
+    )
+
+    if(WIN32)
+        target_link_libraries(libpq_example PRIVATE
+            ws2_32.lib
+            secur32.lib
+        )
+    endif()
 endif()
