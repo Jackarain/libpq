@@ -70,6 +70,7 @@ set(LIBPQ_INC
 if(WIN32)
     list(APPEND LIBPQ_INC
         ${CMAKE_CURRENT_SOURCE_DIR}/win32_inc/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/port/win32
     )
 else()
     list(APPEND LIBPQ_INC
