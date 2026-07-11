@@ -73,6 +73,10 @@ if(WIN32)
         ${CMAKE_CURRENT_SOURCE_DIR}/include/port/win32
         ${CMAKE_CURRENT_SOURCE_DIR}/include/port/win32_msvc
     )
+elseif(APPLE)
+    list(APPEND LIBPQ_INC
+        ${CMAKE_CURRENT_SOURCE_DIR}/macos_inc/include
+    )
 else()
     list(APPEND LIBPQ_INC
         ${CMAKE_CURRENT_SOURCE_DIR}/linux_inc/include
