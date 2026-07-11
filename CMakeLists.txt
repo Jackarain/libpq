@@ -73,6 +73,17 @@ if(WIN32)
     list(APPEND LIBPQ_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/src/pthread-win32.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/win32.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/port/open.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/port/strlcpy.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/port/strlcat.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/port/win32error.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/port/win32gai_strerror.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/port/win32gettimeofday.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/port/win32ntdll.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/port/win32setlocale.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/port/win32stat.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/port/dirmod.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/port/win32common.c
     )
 endif()
 
@@ -139,6 +150,11 @@ add_library(pq STATIC ${LIBPQ_SOURCES})
 
 # 设置输出的库名称 (在 Windows 上生成 pq.lib，在 Linux/macOS 上生成 libpq.a)
 set_target_properties(pq PROPERTIES OUTPUT_NAME "pq")
+
+if(WIN32)
+    target_compile_definitions(pq PRIVATE -DWIN32 -D_CRT_SECURE_NO_WARNINGS)
+    target_link_libraries(pq INTERFACE ws2_32 wldap32)
+endif()
 
 # 设置头文件包含路径
 target_include_directories(pq PRIVATE ${LIBPQ_INC})

@@ -24,7 +24,7 @@ jobs:
           cmake -B build \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-            -DENABLE_SSL=ON
+            -DENABLE_SSL=ON \
             -DENABLE_EXAMPLES=ON
 
       - name: Build
@@ -57,7 +57,7 @@ jobs:
             -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
             -DOPENSSL_ROOT_DIR=$(brew --prefix openssl) \
-            -DENABLE_SSL=ON
+            -DENABLE_SSL=ON \
             -DENABLE_EXAMPLES=ON
 
       - name: Build
