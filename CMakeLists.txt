@@ -135,31 +135,41 @@ add_compile_definitions(SO_MAJOR_VERSION=5 FRONTEND _GNU_SOURCE JSONAPI_USE_PQEX
 # ==============================================================================
 # 5. 目标构建：只构建静态库
 # ==============================================================================
-add_library(libpq_static STATIC ${LIBPQ_SOURCES})
+add_library(pq STATIC ${LIBPQ_SOURCES})
 
 # 设置输出的库名称 (在 Windows 上生成 pq.lib，在 Linux/macOS 上生成 libpq.a)
-set_target_properties(libpq_static PROPERTIES OUTPUT_NAME "pq")
+set_target_properties(pq PROPERTIES OUTPUT_NAME "pq")
 
 # 设置头文件包含路径
-target_include_directories(libpq_static PRIVATE ${LIBPQ_INC})
+target_include_directories(pq PRIVATE ${LIBPQ_INC})
 
 # 链接第三方依赖库
 if(ENABLE_SSL)
-    target_compile_definitions(libpq_static PRIVATE
-        -DUSE_OPENSSL
-    )
-    target_link_libraries(libpq_static PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+    target_compile_definitions(pq PRIVATE -DUSE_OPENSSL)
+    target_link_libraries(pq PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 endif()
 
 if(ENABLE_GSSAPI)
-    target_link_libraries(libpq_static PRIVATE ${GSSAPI_LIBRARIES})
+    target_link_libraries(pq PRIVATE ${GSSAPI_LIBRARIES})
 endif()
 
 # 数学库 (用于 pg_prng.c 中的 log())
 find_library(MATH_LIBRARY m)
 if(MATH_LIBRARY)
-    target_link_libraries(libpq_static PRIVATE ${MATH_LIBRARY})
+    target_link_libraries(pq PRIVATE ${MATH_LIBRARY})
 endif()
+
+# 线程库 (用于多线程支持)
+find_package(Threads REQUIRED)
+if(Threads_FOUND)
+    target_link_libraries(pq PRIVATE Threads::Threads)
+endif()
+
+# 设置别名库，方便外部使用
+target_include_directories(pq SYSTEM INTERFACE interfaces/libpq include)
+
+add_library(PostgreSQL::pq ALIAS pq)
+add_library(PostgreSQL::PostgreSQL ALIAS pq)
 
 # ==============================================================================
 # 6. 示例程序
