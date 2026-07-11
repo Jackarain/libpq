@@ -43,3 +43,24 @@ jobs:
 
       - name: Build
         run: cmake --build build --config ${{ env.BUILD_TYPE }}
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Dependencies
+        run: |
+          brew update
+          brew install ninja openssl
+
+      - name: Configure CMake
+        run: |
+          cmake -B build \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -DOPENSSL_ROOT_DIR=$(brew --prefix openssl) \
+            -DENABLE_SSL=ON
+
+      - name: Build
+        run: cmake --build build --parallel $(sysctl -n hw.logicalcpu)
