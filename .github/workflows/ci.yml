@@ -1,0 +1,141 @@
+# libpq CI — 在 Linux 和 Windows 平台上编译构建
+# 触发条件: push / pull_request 到 main 或 master 分支，也可手动触发
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false # 一个平台失败不影响另一个
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+        build_type:
+          - Release
+        # 可选: 增加 Debug 构建
+        # build_type:
+        #   - Debug
+        #   - Release
+        ssl:
+          - ON
+        include:
+          # Windows: 使用 MSVC (Visual Studio 2022)
+          - os: windows-latest
+            cmake_generator: "Visual Studio 17 2022"
+            cmake_arch: x64
+          # Linux: 使用 Unix Makefiles
+          - os: ubuntu-latest
+            cmake_generator: "Unix Makefiles"
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      # ----------------------------------------------------------------
+      # 1. 签出代码
+      # ----------------------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ----------------------------------------------------------------
+      # 2. 安装依赖
+      # ----------------------------------------------------------------
+      - name: Install dependencies (Ubuntu)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq \
+            libssl-dev \
+            cmake \
+            gcc \
+            g++ \
+            pkg-config
+
+      - name: Install dependencies (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          # 使用 vcpkg 安装 OpenSSL (静态库)
+          vcpkg install openssl:x64-windows-static-md
+          # 输出 vcpkg 路径供后续 CMake 使用
+          echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      # ----------------------------------------------------------------
+      # 3. 缓存 CMake 构建目录 (加速重复构建)
+      # ----------------------------------------------------------------
+      - name: Cache build directory
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/build
+          key: ${{ runner.os }}-cmake-${{ hashFiles('CMakeLists.txt', 'src/*.c', 'include/**') }}
+          restore-keys: |
+            ${{ runner.os }}-cmake-
+
+      # ----------------------------------------------------------------
+      # 4. CMake 配置
+      # ----------------------------------------------------------------
+      - name: Configure CMake (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          cmake -B build -G "${{ matrix.cmake_generator }}" \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DENABLE_SSL=${{ matrix.ssl }} \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install
+
+      - name: Configure CMake (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          cmake -B build -G "${{ matrix.cmake_generator }}" -A ${{ matrix.cmake_arch }} `
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} `
+            -DENABLE_SSL=${{ matrix.ssl }} `
+            -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake" `
+            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}\install"
+
+      # ----------------------------------------------------------------
+      # 5. 编译
+      # ----------------------------------------------------------------
+      - name: Build (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          cmake --build build --config ${{ matrix.build_type }} --verbose -j$(nproc)
+
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          cmake --build build --config ${{ matrix.build_type }} --verbose
+
+      # ----------------------------------------------------------------
+      # 6. 安装构建产物
+      # ----------------------------------------------------------------
+      - name: Install artifacts (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          cmake --install build --config ${{ matrix.build_type }}
+
+      - name: Install artifacts (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          cmake --install build --config ${{ matrix.build_type }}
+
+      # ----------------------------------------------------------------
+      # 7. (可选) 上传构建产物
+      # ----------------------------------------------------------------
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: libpq_${{ runner.os }}_${{ matrix.build_type }}
+          path: ${{ github.workspace }}/install/
+          if-no-files-found: warn
