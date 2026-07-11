@@ -1,11 +1,7 @@
 # libpq CI — 在 Linux 和 Windows 平台上编译构建
 name: CI Build
 
-on:
-  push:
-    branches: [main, master]
-  pull_request:
-    branches: [main, master]
+on: [push]
 
 env:
   BUILD_TYPE: Release
