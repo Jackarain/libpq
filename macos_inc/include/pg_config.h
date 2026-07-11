@@ -567,9 +567,13 @@
 
 #elif defined(__aarch64__) || defined(_M_ARM64) || defined(__arm64__) || defined(__arm__) || defined(_M_ARM)
 
-#define HAVE__CPUID 1
+#undef HAVE__CPUID
 
-#define HAVE__CPUIDEX 1
+#undef HAVE__CPUIDEX
+
+#undef HAVE__GET_CPUID_COUNT
+
+#undef HAVE__GET_CPUID
 
 #endif
 
