@@ -557,11 +557,15 @@
 /* Define to 1 if you have __cpuidex. */
 /* #undef HAVE__CPUIDEX */
 
+#ifndef __aarch64__
+
 /* Define to 1 if you have __get_cpuid. */
 #define HAVE__GET_CPUID 1
 
 /* Define to 1 if you have __get_cpuid_count. */
 #define HAVE__GET_CPUID_COUNT 1
+
+#endif
 
 /* Define to 1 if your compiler understands _Static_assert. */
 #define HAVE__STATIC_ASSERT 1
