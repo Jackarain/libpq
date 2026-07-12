@@ -86,6 +86,14 @@ if(WIN32)
         ${CMAKE_CURRENT_SOURCE_DIR}/port/win32common.c
         ${CMAKE_CURRENT_SOURCE_DIR}/port/inet_aton.c
     )
+elseif(APPLE)
+    # macOS 专属源码
+else()
+    # Linux / Unix 专属源码
+    list(APPEND LIBPQ_SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/port/strlcpy.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/port/strlcat.c
+    )
 endif()
 
 # ==============================================================================
