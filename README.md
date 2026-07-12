@@ -42,11 +42,7 @@ cmake -B build -DENABLE_GSSAPI=ON
 ```cmake
 # 在你的 CMakeLists.txt 中添加
 add_subdirectory(path/to/libpq)
-target_link_libraries(your_target PRIVATE libpq_static)
-target_include_directories(your_target PRIVATE
-    path/to/libpq/include
-    path/to/libpq/interfaces/libpq
-)
+target_link_libraries(your_target PRIVATE PostgreSQL::PostgreSQL)
 ```
 
 ## 使用示例
