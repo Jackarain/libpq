@@ -93,7 +93,12 @@ endif()
 # SSL 支持 (对应 if ssl.found())
 option(ENABLE_SSL "Enable SSL support" ON)
 if(ENABLE_SSL)
-    find_package(OpenSSL REQUIRED)
+    if(OpenSSL_FOUND)
+        message(STATUS "OpenSSL found: ${OPENSSL_VERSION}")
+    else()
+        find_package(OpenSSL REQUIRED)
+        message(STATUS "OpenSSL found via find_package: ${OPENSSL_VERSION}")
+    endif()
     list(APPEND LIBPQ_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/src/fe-secure-common.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/fe-secure-openssl.c
