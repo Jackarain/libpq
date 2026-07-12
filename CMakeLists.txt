@@ -84,6 +84,7 @@ if(WIN32)
         ${CMAKE_CURRENT_SOURCE_DIR}/port/win32stat.c
         ${CMAKE_CURRENT_SOURCE_DIR}/port/dirmod.c
         ${CMAKE_CURRENT_SOURCE_DIR}/port/win32common.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/port/inet_aton.c
     )
 endif()
 
