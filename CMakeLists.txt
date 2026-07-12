@@ -175,7 +175,7 @@ set_target_properties(pq PROPERTIES OUTPUT_NAME "pq")
 
 if(WIN32)
     target_compile_definitions(pq PRIVATE -DWIN32 -D_CRT_SECURE_NO_WARNINGS)
-    target_link_libraries(pq INTERFACE ws2_32 wldap32)
+    target_link_libraries(pq INTERFACE ws2_32 wldap32 secur32.lib)
     if(MINGW)
         target_compile_definitions(pq PRIVATE -D_POSIX_C_SOURCE)
     endif()
