@@ -128,8 +128,12 @@ if(WIN32)
     list(APPEND LIBPQ_INC
         ${CMAKE_CURRENT_SOURCE_DIR}/win32_inc/include
         ${CMAKE_CURRENT_SOURCE_DIR}/include/port/win32
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/port/win32_msvc
     )
+    if(NOT MINGW)
+        list(APPEND LIBPQ_INC
+            ${CMAKE_CURRENT_SOURCE_DIR}/include/port/win32_msvc
+        )
+    endif()
 elseif(APPLE)
     list(APPEND LIBPQ_INC
         ${CMAKE_CURRENT_SOURCE_DIR}/macos_inc/include
@@ -154,6 +158,9 @@ set_target_properties(pq PROPERTIES OUTPUT_NAME "pq")
 if(WIN32)
     target_compile_definitions(pq PRIVATE -DWIN32 -D_CRT_SECURE_NO_WARNINGS)
     target_link_libraries(pq INTERFACE ws2_32 wldap32)
+    if(MINGW)
+        target_compile_definitions(pq PRIVATE -D_POSIX_C_SOURCE)
+    endif()
 endif()
 
 # 设置头文件包含路径
